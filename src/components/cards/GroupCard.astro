@@ -1,0 +1,124 @@
+---
+import { Image } from 'astro:assets';
+import type { CollectionEntry } from 'astro:content';
+
+interface Props {
+  group: CollectionEntry<'groups'>;
+}
+
+const { group } = Astro.props;
+const { name, alias, kind, tagline, logo } = group.data;
+const href = `/${kind === 'club' ? 'clubs' : 'cells'}/${group.id}/`;
+
+const initials = name
+  .split(/\s+/)
+  .filter((w) => /^[A-Za-z]/.test(w))
+  .slice(0, 2)
+  .map((w) => w[0]?.toUpperCase())
+  .join('');
+---
+
+<article class="gcard">
+  <div class="gcard__logo">
+    {
+      logo ? (
+        <Image src={logo} alt="" width={96} height={96} densities={[1, 2]} loading="lazy" />
+      ) : (
+        <span class="gcard__initials" aria-hidden="true">{initials}</span>
+      )
+    }
+  </div>
+
+  <div class="gcard__body">
+    <h3 class="gcard__name">
+      <a href={href}>
+        {name}
+        <span class="gcard__cover"></span>
+      </a>
+    </h3>
+    {alias && <p class="gcard__alias">{alias}</p>}
+    {tagline && <p class="gcard__tagline">{tagline}</p>}
+  </div>
+</article>
+
+<style>
+  .gcard {
+    position: relative;
+    display: flex;
+    gap: 1rem;
+    padding: 1.15rem;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    transition:
+      border-color var(--fast) var(--ease),
+      box-shadow var(--fast) var(--ease),
+      transform var(--fast) var(--ease);
+  }
+
+  .gcard:hover {
+    border-color: color-mix(in oklab, var(--navy) 35%, var(--line));
+    box-shadow: var(--shadow);
+    transform: translateY(-2px);
+  }
+
+  /* The logos are drawn for white backgrounds, which is what they get. */
+  .gcard__logo {
+    flex: none;
+    width: 3.25rem;
+    height: 3.25rem;
+    display: grid;
+    place-items: center;
+    background: var(--paper-3);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+
+  .gcard__logo :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    padding: 0.3rem;
+  }
+
+  .gcard__initials {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--navy);
+  }
+
+  .gcard__body {
+    min-width: 0;
+  }
+
+  .gcard__name {
+    font-size: 1.05rem;
+    margin: 0 0 0.1rem;
+  }
+
+  .gcard__name a {
+    text-decoration: none;
+    color: var(--navy);
+  }
+
+  /* stretched link — the whole card is the target, but only the name is
+     in the accessibility tree as a link */
+  .gcard__cover {
+    position: absolute;
+    inset: 0;
+  }
+
+  .gcard__alias {
+    font-size: 0.8rem;
+    color: var(--accent);
+    font-weight: 600;
+    margin: 0 0 0.3rem;
+  }
+
+  .gcard__tagline {
+    font-size: var(--t-small);
+    color: var(--ink-2);
+    margin: 0;
+  }
+</style>

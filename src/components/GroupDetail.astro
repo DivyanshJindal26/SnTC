@@ -1,0 +1,185 @@
+---
+/** Shared body for a club or cell page — the two differ only in `kind`. */
+import { getCollection, render, type CollectionEntry } from 'astro:content';
+import { Image } from 'astro:assets';
+import PageHeader from './layout/PageHeader.astro';
+import { formatDateRange } from '../lib/events';
+
+interface Props {
+  group: CollectionEntry<'groups'>;
+}
+
+const { group } = Astro.props;
+const { Content } = await render(group);
+const { name, alias, kind, tagline, logo, website, instagram, email } = group.data;
+
+const projects = (await getCollection('projects')).filter(
+  (p) => !p.data.draft && p.data.group?.id === group.id,
+);
+
+const events = (await getCollection('events'))
+  .filter((e) => e.data.host?.id === group.id)
+  .sort((a, b) => b.data.startDate.getTime() - a.data.startDate.getTime());
+
+const members = (await getCollection('members')).filter((m) =>
+  m.data.groups.some((g) => g.id === group.id),
+);
+
+const links = [
+  website && { href: website, label: 'Website' },
+  instagram && { href: instagram, label: 'Instagram' },
+  email && { href: `mailto:${email}`, label: email },
+].filter(Boolean) as { href: string; label: string }[];
+---
+
+<PageHeader
+  label={kind === 'club' ? 'Club' : 'Cell'}
+  title={name}
+  lede={tagline}
+  back={{ href: kind === 'club' ? '/clubs/' : '/cells/', label: `All ${kind}s` }}
+>
+  {alias && <p class="alias">Also known as {alias}</p>}
+</PageHeader>
+
+<section class="section">
+  <div class="page detail">
+    <div class="detail__main prose">
+      <Content />
+
+      {
+        projects.length > 0 && (
+          <>
+            <h2>Projects</h2>
+            <ul class="linklist">
+              {projects.map((p) => (
+                <li>
+                  <a href={`/projects/${p.id}/`}>{p.data.title}</a>
+                  <span class="meta"> — {p.data.summary}</span>
+                </li>
+              ))}
+            </ul>
+          </>
+        )
+      }
+
+      {
+        events.length > 0 && (
+          <>
+            <h2>Events</h2>
+            <ul class="linklist">
+              {events.map((e) => (
+                <li>
+                  <a href={`/events/${e.id}/`}>{e.data.title}</a>
+                  <span class="meta"> — {formatDateRange(e.data.startDate, e.data.endDate)}</span>
+                </li>
+              ))}
+            </ul>
+          </>
+        )
+      }
+
+      {
+        members.length > 0 && (
+          <>
+            <h2>Council members</h2>
+            <p>{members.map((m) => m.data.name).join(', ')}</p>
+          </>
+        )
+      }
+    </div>
+
+    <aside class="detail__side">
+      {
+        logo && (
+          <div class="detail__logo">
+            <Image src={logo} alt={`${name} logo`} width={200} height={200} densities={[1, 2]} />
+          </div>
+        )
+      }
+
+      {
+        links.length > 0 && (
+          <div class="detail__links">
+            <p class="label">Links</p>
+            <ul>
+              {links.map((l) => (
+                <li><a href={l.href}>{l.label}</a></li>
+              ))}
+            </ul>
+          </div>
+        )
+      }
+    </aside>
+  </div>
+</section>
+
+<style>
+  .alias {
+    margin: 0.75rem 0 0;
+    font-size: var(--t-small);
+    color: var(--ink-2);
+  }
+
+  .detail {
+    display: grid;
+    gap: 2.5rem;
+    align-items: start;
+  }
+
+  @media (min-width: 900px) {
+    .detail {
+      grid-template-columns: minmax(0, 1fr) 15rem;
+    }
+  }
+
+  .detail__main h2 {
+    font-size: var(--t-h3);
+  }
+
+  .linklist {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 1em;
+  }
+
+  .linklist li {
+    padding: 0.55rem 0;
+    border-bottom: 1px solid var(--line-soft);
+  }
+
+  .linklist a {
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  .detail__logo {
+    background: var(--paper-3);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    display: grid;
+    place-items: center;
+    margin-bottom: 1.25rem;
+  }
+
+  .detail__logo :global(img) {
+    width: 100%;
+    height: auto;
+    max-width: 8rem;
+    object-fit: contain;
+  }
+
+  .detail__links ul {
+    list-style: none;
+    padding: 0;
+    margin: 0.6rem 0 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+  }
+
+  .detail__links a {
+    font-size: var(--t-small);
+    overflow-wrap: anywhere;
+  }
+</style>

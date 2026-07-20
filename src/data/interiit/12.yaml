@@ -1,0 +1,28 @@
+# Roll numbers present in the old achievements.html have been removed here on
+# purpose. Names only — see docs/CONTRIBUTING.md.
+edition: 12
+year: 2023
+host: IIT Madras
+technicalSecretary: Anurag Morya
+contingentLeader: Shashwat Gupta
+deputyContingentLeader: Mohit Sanjay Mahajan
+overallRank: 11
+medals:
+  - type: bronze
+    event: Quantum Computing Challenge
+    sponsor: Mphasis Foundation
+    category: Mid Prep Event
+    members:
+      - Rishi Mittal
+      - Sukhvansh Jain
+      - Ashmit Ojha
+      - Aridaman Singh Chauhan
+      - Achal Jain
+      - Bipanjit Singh
+highlights:
+  - title: Quantum Computing Challenge
+    description: >-
+      An end-to-end hybrid classical-quantum solution for passenger recovery
+      during airline disruptions — an NP-hard optimization problem. The
+      approach mixed classical techniques with quantum algorithms, alongside a
+      rigorous analysis of existing algorithms and the new one developed.

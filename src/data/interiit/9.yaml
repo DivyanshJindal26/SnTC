@@ -1,0 +1,43 @@
+edition: 9
+year: 2020
+host: IIT Guwahati
+technicalSecretary: Vipul Sharma
+contingentLeader: Arjun Sahdev
+medals:
+  - type: gold
+    event: Algorithmic Trading
+    sponsor: QuantInsti
+    members:
+      - Aryan Goyal
+      - Vineet Ahuja
+      - Dheeraj Yadav
+      - Sanskar Gupta
+      - Anshika Bajpai
+  - type: silver
+    event: Security Hackathon
+    sponsor: Saptang Labs
+    members:
+      - Milind Topno
+      - Yash Bansod
+      - Pranshu Kharkwal
+      - Dhruv Pindawala
+      - Divyasheel Kumar
+  - type: bronze
+    event: Automated Headline and Sentiment Generator
+    sponsor: Bridge i2i
+    members:
+      - Abhijeet Manhas
+      - Khyati Agarwal
+      - Piyush Goyal
+      - Prakhar Uniyal
+      - Naman Tayal
+      - Prajjwal Jha
+      - Manan Shah
+      - Rishabh Garg
+      - Paras Jain
+      - Yash Verma
+highlights:
+  - title: Engineers' Conclave
+    description: >-
+      Represented by Prajwal Sood, Aakash Maurya, Khushi, Manish, Arjun and
+      Vivek Mittal.

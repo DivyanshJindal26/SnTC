@@ -1,0 +1,104 @@
+---
+import '@fontsource-variable/archivo';
+import '@fontsource-variable/ibm-plex-sans';
+import '../styles/global.css';
+
+import Header from '../components/layout/Header.astro';
+import Footer from '../components/layout/Footer.astro';
+import { site } from '../data/site';
+
+interface Props {
+  title: string;
+  description?: string;
+  /** appended to the page title; omit on the home page */
+  bare?: boolean;
+  ogImage?: string;
+}
+
+const {
+  title,
+  description = site.description,
+  bare = false,
+  ogImage,
+} = Astro.props;
+
+const fullTitle = bare ? title : `${title} — ${site.shortName}, ${site.institute}`;
+const canonical = new URL(Astro.url.pathname, Astro.site ?? site.url).href;
+const ogUrl = ogImage ? new URL(ogImage, Astro.site ?? site.url).href : undefined;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={`${site.shortName}, ${site.institute}`} />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    {ogUrl && <meta property="og:image" content={ogUrl} />}
+    <meta name="twitter:card" content={ogUrl ? 'summary_large_image' : 'summary'} />
+
+    <meta name="theme-color" content="#163a7d" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+  </head>
+
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    <Header />
+
+    <main id="main" class="shell">
+      <slot />
+    </main>
+
+    <Footer />
+
+    <script is:inline>
+      // Shared section-reveal stagger. One observer, one transition — the
+      // alternative is per-element animation, which is what makes pages
+      // feel generated.
+      (() => {
+        const items = document.querySelectorAll('.reveal');
+        if (!items.length) return;
+
+        if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
+          for (const el of items) el.classList.add('is-in');
+          return;
+        }
+
+        const io = new IntersectionObserver(
+          (entries, obs) => {
+            for (const e of entries) {
+              if (!e.isIntersecting) continue;
+              e.target.classList.add('is-in');
+              obs.unobserve(e.target);
+            }
+          },
+          { rootMargin: '0px 0px -12% 0px', threshold: 0.06 },
+        );
+
+        for (const el of items) io.observe(el);
+      })();
+    </script>
+  </body>
+</html>
+
+<style is:global>
+  /* sticky footer: main grows so the footer sits at the bottom on short pages */
+  body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+
+  .shell {
+    flex: 1;
+  }
+</style>

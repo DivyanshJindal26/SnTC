@@ -1,0 +1,77 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import MemberCard from '../../components/cards/MemberCard.astro';
+import PageHeader from '../../components/layout/PageHeader.astro';
+import { groupByCohort } from '../../lib/members';
+
+const cohorts = await groupByCohort();
+const active = cohorts.map((c) => ({
+  ...c,
+  members: c.members.filter((m) => m.data.active),
+}));
+const alumni = cohorts.flatMap((c) => c.members.filter((m) => !m.data.active));
+const total = active.reduce((n, c) => n + c.members.length, 0);
+---
+
+<BaseLayout
+  title="Team"
+  description="The core team of the Science and Technology Council, IIT Mandi."
+>
+  <PageHeader
+    label="Team"
+    title="The people who run it"
+    lede={`${total} students across the council's core team, working with the clubs and cells through the year.`}
+  />
+
+  <section class="section">
+    <div class="page">
+      {
+        active.map(({ cohort, members }) => (
+          <div class="cohort">
+            {active.length > 1 && <h2 class="cohort__year">{cohort}</h2>}
+            <ul class="mgrid">
+              {members.map((m) => (
+                <li><MemberCard member={m} /></li>
+              ))}
+            </ul>
+          </div>
+        ))
+      }
+
+      {
+        alumni.length > 0 && (
+          <div class="cohort">
+            <h2 class="cohort__year">Past members</h2>
+            <ul class="mgrid">
+              {alumni.map((m) => (
+                <li><MemberCard member={m} /></li>
+              ))}
+            </ul>
+          </div>
+        )
+      }
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .cohort + .cohort {
+    margin-top: 3rem;
+  }
+
+  .cohort__year {
+    font-size: var(--t-h3);
+    padding-bottom: 0.6rem;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .mgrid {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 11rem), 1fr));
+  }
+</style>

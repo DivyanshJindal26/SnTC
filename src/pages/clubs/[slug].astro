@@ -1,0 +1,23 @@
+---
+import { getCollection, type CollectionEntry } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import GroupDetail from '../../components/GroupDetail.astro';
+
+export async function getStaticPaths() {
+  const clubs = (await getCollection('groups')).filter((g) => g.data.kind === 'club');
+  return clubs.map((group) => ({ params: { slug: group.id }, props: { group } }));
+}
+
+interface Props {
+  group: CollectionEntry<'groups'>;
+}
+
+const { group } = Astro.props;
+---
+
+<BaseLayout
+  title={group.data.name}
+  description={group.data.tagline ?? `${group.data.name} at IIT Mandi.`}
+>
+  <GroupDetail group={group} />
+</BaseLayout>

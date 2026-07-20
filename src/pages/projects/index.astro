@@ -1,0 +1,188 @@
+---
+import { getCollection } from 'astro:content';
+import { Image } from 'astro:assets';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHeader from '../../components/layout/PageHeader.astro';
+
+const projects = (await getCollection('projects'))
+  .filter((p) => !p.data.draft)
+  .sort((a, b) => (b.data.budgetINR ?? 0) - (a.data.budgetINR ?? 0));
+
+const inr = new Intl.NumberFormat('en-IN', {
+  style: 'currency',
+  currency: 'INR',
+  maximumFractionDigits: 0,
+});
+
+const totalBudget = projects.reduce((n, p) => n + (p.data.budgetINR ?? 0), 0);
+const totalPeople = projects.reduce(
+  (n, p) => n + 1 + (p.data.coLead ? 1 : 0) + p.data.team.length,
+  0,
+);
+---
+
+<BaseLayout
+  title="Projects"
+  description="Funded, student-led engineering projects at IIT Mandi — rovers, satellites, race cars and more."
+>
+  <PageHeader
+    label="Projects"
+    title="What we are building"
+    lede="Funded, student-led builds entered into national and international competitions. Budgets and full team rosters are published."
+  />
+
+  <section class="section">
+    <div class="page">
+      <dl class="totals">
+        <div><dt>Projects</dt><dd>{projects.length}</dd></div>
+        <div><dt>Students involved</dt><dd>{totalPeople}</dd></div>
+        <div><dt>Combined budget</dt><dd>{inr.format(totalBudget)}</dd></div>
+      </dl>
+
+      <ul class="plist">
+        {
+          projects.map((p) => (
+            <li class="prow">
+              <a class="prow__media" href={`/projects/${p.id}/`}>
+                {p.data.image && (
+                  <Image src={p.data.image} alt="" width={640} height={420} loading="lazy" />
+                )}
+              </a>
+              <div class="prow__body">
+                <h2 class="prow__title">
+                  <a href={`/projects/${p.id}/`}>{p.data.title}</a>
+                </h2>
+                <p class="prow__sum">{p.data.summary}</p>
+                <dl class="prow__meta">
+                  <div><dt>Lead</dt><dd>{p.data.lead.name}</dd></div>
+                  {p.data.budgetINR && (
+                    <div><dt>Budget</dt><dd>{inr.format(p.data.budgetINR)}</dd></div>
+                  )}
+                  <div><dt>Team</dt><dd>{1 + (p.data.coLead ? 1 : 0) + p.data.team.length}</dd></div>
+                </dl>
+              </div>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .totals {
+    display: grid;
+    gap: 1px;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 11rem), 1fr));
+    background: var(--line);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin: 0 0 2.5rem;
+  }
+
+  .totals > div {
+    background: var(--paper);
+    padding: 1rem 1.15rem;
+  }
+
+  .totals dt {
+    font-size: var(--t-label);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin-bottom: 0.25rem;
+  }
+
+  .totals dd {
+    margin: 0;
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 1.4rem;
+    color: var(--navy);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .plist {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .prow {
+    display: grid;
+    gap: 1.5rem;
+    align-items: center;
+    padding: 1.25rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--paper);
+    transition:
+      border-color var(--fast) var(--ease),
+      box-shadow var(--fast) var(--ease);
+  }
+
+  .prow:hover {
+    border-color: color-mix(in oklab, var(--navy) 30%, var(--line));
+    box-shadow: var(--shadow);
+  }
+
+  @media (min-width: 760px) {
+    .prow {
+      grid-template-columns: 16rem minmax(0, 1fr);
+    }
+  }
+
+  .prow__media {
+    display: block;
+    aspect-ratio: 16 / 10;
+    border-radius: var(--radius);
+    overflow: hidden;
+    background: var(--paper-3);
+  }
+
+  .prow__media :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .prow__title {
+    font-size: var(--t-h3);
+    margin: 0 0 0.4rem;
+  }
+
+  .prow__title a {
+    text-decoration: none;
+  }
+
+  .prow__sum {
+    color: var(--ink-2);
+    margin: 0 0 0.9rem;
+    max-width: 60ch;
+  }
+
+  .prow__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 2rem;
+    margin: 0;
+  }
+
+  .prow__meta dt {
+    font-size: var(--t-label);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+
+  .prow__meta dd {
+    margin: 0;
+    font-weight: 600;
+    font-size: var(--t-small);
+    font-variant-numeric: tabular-nums;
+  }
+</style>

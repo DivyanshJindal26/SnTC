@@ -1,0 +1,224 @@
+---
+import { getCollection, getEntry, render, type CollectionEntry } from 'astro:content';
+import { Image } from 'astro:assets';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHeader from '../../components/layout/PageHeader.astro';
+
+export async function getStaticPaths() {
+  const projects = (await getCollection('projects')).filter((p) => !p.data.draft);
+  return projects.map((project) => ({ params: { slug: project.id }, props: { project } }));
+}
+
+interface Props {
+  project: CollectionEntry<'projects'>;
+}
+
+const { project } = Astro.props;
+const { Content } = await render(project);
+const d = project.data;
+
+const group = d.group ? await getEntry(d.group) : null;
+
+const inr = new Intl.NumberFormat('en-IN', {
+  style: 'currency',
+  currency: 'INR',
+  maximumFractionDigits: 0,
+});
+
+const roster = [
+  { ...d.lead, tag: 'Lead' },
+  ...(d.coLead ? [{ ...d.coLead, tag: 'Co-lead' }] : []),
+  ...d.team.map((t) => ({ ...t, tag: null })),
+];
+---
+
+<BaseLayout title={d.title} description={d.summary}>
+  <PageHeader
+    label="Project"
+    title={d.title}
+    lede={d.summary}
+    back={{ href: '/projects/', label: 'All projects' }}
+  />
+
+  <section class="section">
+    <div class="page detail">
+      <div class="detail__main">
+        {
+          d.image && (
+            <Image
+              class="detail__hero"
+              src={d.image}
+              alt=""
+              widths={[640, 1000]}
+              sizes="(min-width: 900px) 60vw, 100vw"
+              loading="eager"
+            />
+          )
+        }
+
+        <div class="prose"><Content /></div>
+
+        <h2 class="rteam__head">Team</h2>
+        <ul class="rteam">
+          {
+            roster.map((p) => (
+              <li>
+                <span class="rteam__name">{p.name}</span>
+                {(p.role || p.tag) && (
+                  <span class="rteam__role">{p.role ?? p.tag}</span>
+                )}
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+
+      <aside class="detail__side">
+        <dl class="facts">
+          {
+            d.budgetINR && (
+              <div><dt>Budget</dt><dd>{inr.format(d.budgetINR)}</dd></div>
+            )
+          }
+          <div><dt>Team size</dt><dd>{roster.length}</dd></div>
+          <div><dt>Status</dt><dd class="cap">{d.status}</dd></div>
+          {d.year && <div><dt>Target year</dt><dd>{d.year}</dd></div>}
+          {
+            group && (
+              <div>
+                <dt>Club</dt>
+                <dd>
+                  <a href={`/${group.data.kind === 'club' ? 'clubs' : 'cells'}/${group.id}/`}>
+                    {group.data.name}
+                  </a>
+                </dd>
+              </div>
+            )
+          }
+          {
+            d.contactEmail && (
+              <div>
+                <dt>Contact</dt>
+                <dd><a href={`mailto:${d.contactEmail}`}>{d.contactEmail}</a></dd>
+              </div>
+            )
+          }
+        </dl>
+
+        {
+          d.links.length > 0 && (
+            <ul class="side-links">
+              {d.links.map((l) => (
+                <li><a href={l.url}>{l.label}</a></li>
+              ))}
+            </ul>
+          )
+        }
+      </aside>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .detail {
+    display: grid;
+    gap: 2.5rem;
+    align-items: start;
+  }
+
+  @media (min-width: 900px) {
+    .detail {
+      grid-template-columns: minmax(0, 1fr) 16rem;
+    }
+  }
+
+  .detail__hero {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    border-radius: var(--radius);
+    border: 1px solid var(--line);
+    margin-bottom: 1.75rem;
+  }
+
+  .rteam__head {
+    font-size: var(--t-h3);
+    margin: 2rem 0 1rem;
+  }
+
+  .rteam {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 1px;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 14rem), 1fr));
+    background: var(--line);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+
+  .rteam li {
+    background: var(--paper);
+    padding: 0.7rem 0.9rem;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .rteam__name {
+    font-weight: 600;
+    font-size: var(--t-small);
+  }
+
+  .rteam__role {
+    font-size: 0.78rem;
+    color: var(--ink-3);
+  }
+
+  .facts {
+    margin: 0;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+
+  .facts > div {
+    padding: 0.8rem 1rem;
+    border-bottom: 1px solid var(--line-soft);
+  }
+
+  .facts > div:last-child {
+    border-bottom: 0;
+  }
+
+  .facts dt {
+    font-size: var(--t-label);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin-bottom: 0.2rem;
+  }
+
+  .facts dd {
+    margin: 0;
+    font-weight: 600;
+    font-size: var(--t-small);
+    overflow-wrap: anywhere;
+  }
+
+  .cap {
+    text-transform: capitalize;
+  }
+
+  .side-links {
+    list-style: none;
+    margin: 1rem 0 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    font-size: var(--t-small);
+  }
+</style>

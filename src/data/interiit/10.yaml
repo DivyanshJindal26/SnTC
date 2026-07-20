@@ -1,0 +1,30 @@
+# Roll numbers removed from member lists — names only.
+edition: 10
+year: 2021
+host: IIT Kharagpur
+technicalSecretary: Abhijeet Manhas
+contingentLeader: Ankit Karan
+medals:
+  - type: silver
+    event: Next Gen Optimized Delivery System
+    sponsor: Blue Yonder
+    members:
+      - Surendra Singh
+      - Rajat Bansal
+      - Kanishk Garg
+      - Aniket Sukhija
+      - Palak Sharma
+  - type: bronze
+    event: SE Challenge
+    sponsor: Silicon Labs
+    members:
+      - Anurag Maurya
+      - Shashwat Gupta
+      - Shalu
+      - Lalit Narayan Mudgal
+      - Ankit Karan
+      - Ishan Dahiya
+      - Yash Vardhan Sagar
+      - Dharma
+      - Geetanshu Arsiya
+      - Deepak Kumar Sah

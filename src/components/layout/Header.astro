@@ -1,0 +1,239 @@
+---
+import { site } from '../../data/site';
+
+const path = Astro.url.pathname;
+const isCurrent = (href: string) => path === href || (href !== '/' && path.startsWith(href));
+---
+
+<header class="hdr">
+  <div class="hdr__inner page">
+    <a href="/" class="hdr__brand">
+      <img
+        class="hdr__logo"
+        src="/logo.png"
+        alt=""
+        width="44"
+        height="44"
+        loading="eager"
+      />
+      <span class="hdr__names">
+        <span class="hdr__short">{site.shortName}</span>
+        <span class="hdr__long">{site.institute}</span>
+      </span>
+    </a>
+
+    <button class="hdr__toggle" aria-expanded="false" aria-controls="primary-nav">
+      <span class="visually-hidden">Menu</span>
+      <span class="hdr__bars" aria-hidden="true"><i></i><i></i><i></i></span>
+    </button>
+
+    <nav id="primary-nav" class="hdr__nav" aria-label="Primary">
+      <ul>
+        {
+          site.nav.map((item) => (
+            <li>
+              <a href={item.href} aria-current={isCurrent(item.href) ? 'page' : undefined}>
+                {item.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<script is:inline>
+  (() => {
+    const btn = document.querySelector('.hdr__toggle');
+    const hdr = document.querySelector('.hdr');
+    if (!btn || !hdr) return;
+
+    const setOpen = (open) => {
+      btn.setAttribute('aria-expanded', String(open));
+      hdr.classList.toggle('is-open', open);
+      document.body.style.overflow = open ? 'hidden' : '';
+    };
+
+    btn.addEventListener('click', () =>
+      setOpen(btn.getAttribute('aria-expanded') !== 'true'),
+    );
+    document.addEventListener('keydown', (e) => e.key === 'Escape' && setOpen(false));
+    for (const a of hdr.querySelectorAll('.hdr__nav a')) {
+      a.addEventListener('click', () => setOpen(false));
+    }
+  })();
+</script>
+
+<style>
+  .hdr {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    background: color-mix(in oklab, var(--paper) 92%, transparent);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .hdr__inner {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    padding-block: 0.7rem;
+  }
+
+  /* --- brand ----------------------------------------------------------- */
+  .hdr__brand {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    text-decoration: none;
+    color: var(--navy);
+    margin-right: auto;
+  }
+
+  .hdr__logo {
+    width: 2.4rem;
+    height: 2.4rem;
+    object-fit: contain;
+    flex: none;
+  }
+
+  .hdr__names {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.15;
+  }
+
+  .hdr__short {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 1.1rem;
+    letter-spacing: -0.01em;
+  }
+
+  .hdr__long {
+    font-size: 0.7rem;
+    letter-spacing: 0.055em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    font-weight: 500;
+  }
+
+  /* --- nav ------------------------------------------------------------- */
+  .hdr__nav ul {
+    display: flex;
+    gap: 0.15rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .hdr__nav a {
+    display: block;
+    padding: 0.5rem 0.8rem;
+    border-radius: var(--radius);
+    font-size: 0.925rem;
+    font-weight: 500;
+    color: var(--ink-2);
+    text-decoration: none;
+    transition:
+      color var(--fast) var(--ease),
+      background-color var(--fast) var(--ease);
+  }
+
+  .hdr__nav a:hover {
+    color: var(--navy);
+    background: var(--navy-tint);
+  }
+
+  .hdr__nav a[aria-current='page'] {
+    color: var(--navy);
+    font-weight: 600;
+    background: var(--navy-tint);
+  }
+
+  /* --- toggle ---------------------------------------------------------- */
+  .hdr__toggle {
+    display: none;
+    background: none;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 0.55rem 0.6rem;
+    cursor: pointer;
+  }
+
+  .hdr__bars {
+    display: block;
+    width: 1.05rem;
+  }
+
+  .hdr__bars i {
+    display: block;
+    height: 2px;
+    border-radius: 2px;
+    background: var(--navy);
+    transition:
+      transform var(--fast) var(--ease),
+      opacity var(--fast) var(--ease);
+  }
+
+  .hdr__bars i + i {
+    margin-top: 3.5px;
+  }
+
+  .hdr.is-open .hdr__bars i:first-child {
+    transform: translateY(5.5px) rotate(45deg);
+  }
+
+  .hdr.is-open .hdr__bars i:nth-child(2) {
+    opacity: 0;
+  }
+
+  .hdr.is-open .hdr__bars i:last-child {
+    transform: translateY(-5.5px) rotate(-45deg);
+  }
+
+  @media (max-width: 900px) {
+    .hdr__toggle {
+      display: block;
+    }
+
+    .hdr__nav {
+      position: fixed;
+      inset: 3.9rem 0 0;
+      background: var(--paper);
+      padding: 1rem var(--gutter) 2rem;
+      overflow-y: auto;
+      opacity: 0;
+      transform: translateY(-6px);
+      pointer-events: none;
+      transition:
+        opacity var(--mid) var(--ease),
+        transform var(--mid) var(--ease);
+    }
+
+    .hdr.is-open .hdr__nav {
+      opacity: 1;
+      transform: none;
+      pointer-events: auto;
+    }
+
+    .hdr__nav ul {
+      flex-direction: column;
+      gap: 0;
+    }
+
+    .hdr__nav a {
+      font-size: 1.05rem;
+      padding: 0.9rem 0.25rem;
+      border-radius: 0;
+      border-bottom: 1px solid var(--line-soft);
+    }
+
+    .hdr__nav a:hover,
+    .hdr__nav a[aria-current='page'] {
+      background: transparent;
+    }
+  }
+</style>

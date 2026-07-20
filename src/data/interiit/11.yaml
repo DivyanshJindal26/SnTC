@@ -1,0 +1,71 @@
+edition: 11
+year: 2022
+host: IIT Kanpur
+technicalSecretary: Surendra Singh
+contingentLeader: Lalit N. Mugdal
+overallRank: 9
+medals:
+  - type: gold
+    event: GameDev Challenge
+    sponsor: IGDC
+    members:
+      - Alhad P Chatur
+      - Arjun Mehra
+      - Aditya Sahu
+      - Ravi Shirsat
+      - Swarnarup Bhunia
+      - Rishabh Shrival
+  - type: silver
+    event: Pluto Drone Swarm Challenge
+    sponsor: Drona Aviation
+    members:
+      - Lakshay Wadhwani
+      - Bhuvan Narula
+      - Aditya Ray Mishra
+      - Yash Vardhan Sagar
+      - Vattsal Hariramani
+      - Shashank Kapoor
+      - Shashwat Gupta
+      - Geetanshu Arsiya
+      - Anurag Morya
+  - type: silver
+    event: Efficacy of Price Action Trading Strategies in the Indian Market
+    sponsor: QuantInsti
+    members:
+      - Pratiksha Jain
+      - Kratika Gupta
+      - Aryan Goyal
+      - Vineet Ahuja
+      - Rohan
+  - type: bronze
+    event: "Expert Answers in a Flash: Improving Domain-Specific QA"
+    sponsor: DevRev
+    members:
+      - Samvaidan Salgotra
+      - Vansh Kodesia
+      - Ekansh Singh
+      - Tarash Sambhar
+      - Akarshan Kapoor
+      - Raj Singh Bani
+      - Ashutosh Sharma
+      - Arush Samadhia
+      - Deepali Singh
+      - Mukesh Kumar Yadav
+  - type: bronze
+    event: Product Challenge
+    sponsor: Paradime.io
+    members:
+      - Surinderpal Singh
+      - Nayan Kharkar
+      - Harshit Kalra
+      - Gyanjyoti Kalita
+highlights:
+  - title: Students Academic Conference
+    description: >-
+      An optimal vaccine strategy for pandemic management and its impact on
+      economic recovery. Paper by Vansh Kodesia.
+  - title: Engineers' Conclave
+    description: >-
+      BiTLock, which addresses the problem of physical locks by replacing the
+      key with a digital one. Project by Laxman Prasad, Shailesh Rathod and
+      Sonam Chauhan.

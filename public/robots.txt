@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://sntc.iitmandi.co.in/sitemap-index.xml

@@ -1,0 +1,232 @@
+---
+import { getCollection, getEntry, render, type CollectionEntry } from 'astro:content';
+import { Image } from 'astro:assets';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHeader from '../../components/layout/PageHeader.astro';
+import {
+  childrenOf,
+  formatDateRange,
+  formatTimeRange,
+  isPast,
+} from '../../lib/events';
+
+export async function getStaticPaths() {
+  const events = await getCollection('events');
+  return events.map((event) => ({ params: { slug: event.id }, props: { event } }));
+}
+
+interface Props {
+  event: CollectionEntry<'events'>;
+}
+
+const { event } = Astro.props;
+const { Content } = await render(event);
+const d = event.data;
+
+const host = d.host ? await getEntry(d.host) : null;
+const parent = d.parent ? await getEntry(d.parent) : null;
+const children = await childrenOf(event.id);
+const over = isPast(event);
+
+const facts = [
+  { label: 'Date', value: formatDateRange(d.startDate, d.endDate) },
+  d.startTime && { label: 'Time', value: formatTimeRange(d.startTime, d.endTime) },
+  d.venue && { label: 'Venue', value: d.venue },
+  host && { label: 'Offered by', value: host.data.name, href: `/${host.data.kind === 'club' ? 'clubs' : 'cells'}/${host.id}/` },
+].filter(Boolean) as { label: string; value: string; href?: string }[];
+---
+
+<BaseLayout title={d.title} description={d.summary}>
+  <PageHeader
+    label={parent ? parent.data.title : d.kind === 'fest' ? 'Fest' : 'Event'}
+    title={d.title}
+    lede={d.summary}
+    back={
+      parent
+        ? { href: `/events/${parent.id}/`, label: parent.data.title }
+        : { href: '/events/', label: 'All events' }
+    }
+  />
+
+  <section class="section">
+    <div class="page detail">
+      <div class="detail__main">
+        {
+          d.poster && (
+            <Image
+              class="detail__poster"
+              src={d.poster}
+              alt={`Poster for ${d.title}`}
+              widths={[560, 900]}
+              sizes="(min-width: 900px) 55vw, 100vw"
+              loading="eager"
+            />
+          )
+        }
+
+        <div class="prose"><Content /></div>
+
+        {
+          children.length > 0 && (
+            <>
+              <h2 class="sub__head">{children.length} events</h2>
+              <ul class="sublist">
+                {children.map((c) => (
+                  <li>
+                    <div>
+                      <h3><a href={`/events/${c.id}/`}>{c.data.title}</a></h3>
+                      <p class="sublist__sum">{c.data.summary}</p>
+                    </div>
+                    <p class="meta sublist__when">
+                      {formatDateRange(c.data.startDate)}
+                      {c.data.startTime && <><br />{formatTimeRange(c.data.startTime, c.data.endTime)}</>}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+            </>
+          )
+        }
+      </div>
+
+      <aside class="detail__side">
+        <dl class="facts">
+          {
+            facts.map((f) => (
+              <div>
+                <dt>{f.label}</dt>
+                <dd>{f.href ? <a href={f.href}>{f.value}</a> : f.value}</dd>
+              </div>
+            ))
+          }
+        </dl>
+
+        {
+          d.registerUrl && !over && (
+            <a class="btn btn--primary side-cta" href={d.registerUrl}>Register</a>
+          )
+        }
+        {
+          d.registerUrl && over && (
+            <p class="closed">Registration for this event has closed.</p>
+          )
+        }
+        {
+          d.externalUrl && (
+            <a class="btn side-cta" href={d.externalUrl}>Visit the site</a>
+          )
+        }
+      </aside>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .detail {
+    display: grid;
+    gap: 2.5rem;
+    align-items: start;
+  }
+
+  @media (min-width: 900px) {
+    .detail {
+      grid-template-columns: minmax(0, 1fr) 16rem;
+    }
+  }
+
+  .detail__poster {
+    width: 100%;
+    height: auto;
+    max-height: 26rem;
+    object-fit: contain;
+    background: var(--paper-3);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    margin-bottom: 1.75rem;
+  }
+
+  .sub__head {
+    font-size: var(--t-h3);
+    margin: 2rem 0 1rem;
+  }
+
+  .sublist {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-top: 1px solid var(--line);
+  }
+
+  .sublist li {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 0.25rem 1.5rem;
+    padding: 0.9rem 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .sublist h3 {
+    margin: 0 0 0.15rem;
+    font-size: 1.02rem;
+  }
+
+  .sublist h3 a {
+    text-decoration: none;
+  }
+
+  .sublist__sum {
+    margin: 0;
+    color: var(--ink-2);
+    font-size: var(--t-small);
+    max-width: 54ch;
+  }
+
+  .sublist__when {
+    margin: 0;
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  .facts {
+    margin: 0 0 1.25rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+
+  .facts > div {
+    padding: 0.8rem 1rem;
+    border-bottom: 1px solid var(--line-soft);
+  }
+
+  .facts > div:last-child {
+    border-bottom: 0;
+  }
+
+  .facts dt {
+    font-size: var(--t-label);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin-bottom: 0.2rem;
+  }
+
+  .facts dd {
+    margin: 0;
+    font-weight: 600;
+    font-size: var(--t-small);
+  }
+
+  .side-cta {
+    display: block;
+    text-align: center;
+  }
+
+  .closed {
+    font-size: var(--t-small);
+    color: var(--ink-3);
+    margin: 0;
+  }
+</style>

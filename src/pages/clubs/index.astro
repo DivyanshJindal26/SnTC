@@ -1,0 +1,40 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHeader from '../../components/layout/PageHeader.astro';
+import GroupCard from '../../components/cards/GroupCard.astro';
+
+const clubs = (await getCollection('groups'))
+  .filter((g) => g.data.kind === 'club' && g.data.active)
+  .sort((a, b) => a.data.order - b.data.order || a.data.name.localeCompare(b.data.name));
+---
+
+<BaseLayout
+  title="Clubs"
+  description="The eight technical clubs of the Science and Technology Council, IIT Mandi."
+>
+  <PageHeader
+    label="Clubs"
+    title="Eight technical clubs"
+    lede="Each club is run by its coordinators and a core team, under a faculty advisor and co-advisor. All of them are open to every student — join at any point in the year."
+  />
+
+  <section class="section">
+    <div class="page">
+      <ul class="grid">
+        {clubs.map((g) => <li><GroupCard group={g} /></li>)}
+      </ul>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .grid {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 19rem), 1fr));
+  }
+</style>

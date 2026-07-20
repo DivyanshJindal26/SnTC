@@ -1,0 +1,337 @@
+{
+  "generatedAt": "2026-07-20T12:52:01.439Z",
+  "rows": [
+    {
+      "file": "people/yogesh.jpg",
+      "from": "3071x4096",
+      "before": 9551822,
+      "after": 225199
+    },
+    {
+      "file": "people/anhad-thakral.jpg",
+      "from": "2181x2447",
+      "before": 2298492,
+      "after": 76650
+    },
+    {
+      "file": "projects/mars-rover-deimos.jpg",
+      "from": "1636x1288",
+      "before": 2200959,
+      "after": 155376
+    },
+    {
+      "file": "people/diksha-sharma.jpg",
+      "from": "3000x2779",
+      "before": 1941970,
+      "after": 141907
+    },
+    {
+      "file": "people/vaibhav-kesharwani.jpg",
+      "from": "3222x3145",
+      "before": 1923251,
+      "after": 213140
+    },
+    {
+      "file": "events/3d-thon.jpg",
+      "from": "1080x1080",
+      "before": 1218763,
+      "after": 107288
+    },
+    {
+      "file": "events/end-of-world.jpg",
+      "from": "1080x1080",
+      "before": 1216533,
+      "after": 101804
+    },
+    {
+      "file": "people/rc-manish-reddy.jpg",
+      "from": "2208x1243",
+      "before": 1168430,
+      "after": 87814
+    },
+    {
+      "file": "events/chassis-crafting.jpg",
+      "from": "1920x2688",
+      "before": 1091800,
+      "after": 113813
+    },
+    {
+      "file": "people/manan.jpg",
+      "from": "1080x2412",
+      "before": 1062563,
+      "after": 46860
+    },
+    {
+      "file": "events/disrupt.jpg",
+      "from": "1080x1000",
+      "before": 805769,
+      "after": 87134
+    },
+    {
+      "file": "events/water-rocket.jpg",
+      "from": "1019x583",
+      "before": 716695,
+      "after": 75715
+    },
+    {
+      "file": "events/scratch-ya-heads.jpg",
+      "from": "1920x2688",
+      "before": 498776,
+      "after": 159864
+    },
+    {
+      "file": "people/tharun-chanda.jpg",
+      "from": "1439x1439",
+      "before": 318228,
+      "after": 162493
+    },
+    {
+      "file": "groups/yantrik.png",
+      "from": "778x860",
+      "before": 276549,
+      "after": 34653
+    },
+    {
+      "file": "people/ayush-sawarn.jpg",
+      "from": "960x1280",
+      "before": 272502,
+      "after": 115150
+    },
+    {
+      "file": "people/mayank-goel.jpg",
+      "from": "960x1280",
+      "before": 271581,
+      "after": 124076
+    },
+    {
+      "file": "events/cell-saga.jpg",
+      "from": "1131x1600",
+      "before": 235078,
+      "after": 174671
+    },
+    {
+      "file": "events/inter-iit-bootcamp.jpg",
+      "from": "1024x1024",
+      "before": 230678,
+      "after": 207995
+    },
+    {
+      "file": "groups/sae.png",
+      "from": "5497x2294",
+      "before": 210630,
+      "after": 12848
+    },
+    {
+      "file": "people/rohith-pranav.jpg",
+      "from": "1240x2147",
+      "before": 199196,
+      "after": 40313
+    },
+    {
+      "file": "people/dhruv-verma.jpg",
+      "from": "960x1280",
+      "before": 192158,
+      "after": 55512
+    },
+    {
+      "file": "brand/logo-solid.png",
+      "from": "619x496",
+      "before": 180330,
+      "after": 35004
+    },
+    {
+      "file": "projects/sae-efficycle.jpg",
+      "from": "1280x720",
+      "before": 179324,
+      "after": 98196
+    },
+    {
+      "file": "events/viaduct.jpg",
+      "from": "739x735",
+      "before": 177641,
+      "after": 78616
+    },
+    {
+      "file": "events/xpecto.png",
+      "from": "518x482",
+      "before": 163835,
+      "after": 42629
+    },
+    {
+      "file": "people/shubham-padhi.png",
+      "from": "460x460",
+      "before": 161469,
+      "after": 80579
+    },
+    {
+      "file": "projects/formula-bharat.jpg",
+      "from": "1280x720",
+      "before": 150114,
+      "after": 149944
+    },
+    {
+      "file": "people/himadri-singh.jpg",
+      "from": "768x792",
+      "before": 143706,
+      "after": 98763
+    },
+    {
+      "file": "events/takeshis-castle.jpg",
+      "from": "1280x762",
+      "before": 130746,
+      "after": 126267
+    },
+    {
+      "file": "groups/stac.png",
+      "from": "960x960",
+      "before": 118266,
+      "after": 13440
+    },
+    {
+      "file": "groups/nirmaan.png",
+      "from": "640x640",
+      "before": 117208,
+      "after": 26826
+    },
+    {
+      "file": "projects/wall-climber-robot.jpg",
+      "from": "946x852",
+      "before": 99133,
+      "after": 66867
+    },
+    {
+      "file": "events/pain-pulse.jpg",
+      "from": "1080x1080",
+      "before": 99097,
+      "after": 86419
+    },
+    {
+      "file": "people/aditya-sahu.jpg",
+      "from": "1200x1600",
+      "before": 96599,
+      "after": 49376
+    },
+    {
+      "file": "groups/robotronics.png",
+      "from": "626x626",
+      "before": 84482,
+      "after": 21049
+    },
+    {
+      "file": "events/tip-hackathon.jpg",
+      "from": "824x581",
+      "before": 81336,
+      "after": 93917
+    },
+    {
+      "file": "people/aritra-boral.jpg",
+      "from": "877x877",
+      "before": 71662,
+      "after": 75241
+    },
+    {
+      "file": "groups/ecell.png",
+      "from": "761x761",
+      "before": 62181,
+      "after": 9329
+    },
+    {
+      "file": "people/vinamra-garg.jpg",
+      "from": "446x506",
+      "before": 61649,
+      "after": 38203
+    },
+    {
+      "file": "groups/gdsc.png",
+      "from": "512x191",
+      "before": 57491,
+      "after": 17817
+    },
+    {
+      "file": "projects/inspace-cansat.jpg",
+      "from": "1280x665",
+      "before": 54017,
+      "after": 25817
+    },
+    {
+      "file": "people/kusum-agrawal.jpg",
+      "from": "489x573",
+      "before": 51716,
+      "after": 34243
+    },
+    {
+      "file": "people/piyush-kumar.jpg",
+      "from": "497x541",
+      "before": 50708,
+      "after": 30457
+    },
+    {
+      "file": "groups/kbg.png",
+      "from": "512x512",
+      "before": 45421,
+      "after": 34929
+    },
+    {
+      "file": "groups/saic.jpg",
+      "from": "885x794",
+      "before": 44069,
+      "after": 11272
+    },
+    {
+      "file": "interiit/inter-iit.jpg",
+      "from": "555x260",
+      "before": 35165,
+      "after": 14879
+    },
+    {
+      "file": "groups/heuristics.png",
+      "from": "393x216",
+      "before": 31574,
+      "after": 12263
+    },
+    {
+      "file": "interiit/gamedev-challenge.jpg",
+      "from": "487x473",
+      "before": 25538,
+      "after": 14712
+    },
+    {
+      "file": "brand/logo.png",
+      "from": "166x164",
+      "before": 22729,
+      "after": 6881
+    },
+    {
+      "file": "brand/wordmark.jpg",
+      "from": "166x164",
+      "before": 19756,
+      "after": 4855
+    },
+    {
+      "file": "groups/programming-club.png",
+      "from": "300x300",
+      "before": 15711,
+      "after": 10716
+    },
+    {
+      "file": "events/utkarsh.png",
+      "from": "781x781",
+      "before": 15431,
+      "after": 7003
+    }
+  ],
+  "missing": [],
+  "unmapped": [
+    "Achievements.png",
+    "Bronze.png",
+    "Dheeraj.jpg",
+    "favicon.jpg",
+    "Gold.png",
+    "logo-mid.jpg",
+    "Silver.png",
+    "sntc1.png",
+    "sntc3.png",
+    "tenor.gif",
+    "Utkarsh-new.webp"
+  ]
+}

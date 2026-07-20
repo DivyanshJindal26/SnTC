@@ -1,0 +1,43 @@
+# Roll numbers removed from member lists — names only.
+edition: 8
+year: 2019
+host: IIT Roorkee
+technicalSecretary: Abhijeet Manhas
+contingentLeader: Abhigyan Khaund
+medals:
+  - type: gold
+    event: Coding Hackathon
+    members:
+      - Aashish Kumar
+      - Chirag Vashisht
+      - Milind Topno
+      - Vipul Sharma
+  - type: bronze
+    event: Case Study
+    members:
+      - Param Kashyap
+      - Rohit Bhamu
+      - Yuvraj Misra
+  - type: bronze
+    event: DataScience Challenge
+    sponsor: BitGrit
+    members:
+      - Abhijeet Manhas
+      - Dipanshu Verma
+      - Nidhi Jain
+      - Shubhamkumar Pandey
+  - type: bronze
+    event: Route Optimization Algorithm
+    members:
+      - Akash Dakoor
+      - Palak Gupta
+      - Shreyas Bapat
+highlights:
+  - title: Engineers Conclave
+    description: >-
+      The first year IIT Mandi took full points here. Five projects, one each by
+      Palak Gupta, Amit Rajain, Shreyas Bapat, Bhavya Bhatt and Mehul Banga.
+  - title: Students Academic Conference
+    description: >-
+      Also full points. Five paper presentations, one each by Hritik Gupta,
+      Bhavya Bhatt, Pratyush Gaurav, Shreyas Bapat and Abhigyan Khaund.

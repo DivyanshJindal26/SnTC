@@ -1,0 +1,228 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHeader from '../../components/layout/PageHeader.astro';
+
+const meets = (await getCollection('interiit')).sort(
+  (a, b) => b.data.edition - a.data.edition,
+);
+
+/** Counts are derived, never typed in — the old page hardcoded 3/4/8. */
+const tally = { gold: 0, silver: 0, bronze: 0 };
+for (const m of meets) {
+  for (const medal of m.data.medals) tally[medal.type] += 1;
+}
+const total = tally.gold + tally.silver + tally.bronze;
+
+const medalLabel = { gold: 'Gold', silver: 'Silver', bronze: 'Bronze' } as const;
+---
+
+<BaseLayout
+  title="Achievements"
+  description="IIT Mandi's Inter-IIT Tech Meet record — medals, rosters and rankings."
+>
+  <PageHeader
+    label="Inter-IIT Tech Meet"
+    title={`${total} medals across ${meets.length} meets`}
+    lede="The IIT Mandi contingent competes annually against every other IIT. The full record, going back to the 8.0 meet in 2019."
+  />
+
+  <section class="section">
+    <div class="page">
+      <ul class="tally">
+        {
+          (['gold', 'silver', 'bronze'] as const).map((t) => (
+            <li class={`tally__item tally__item--${t}`}>
+              <span class="tally__n">{tally[t]}</span>
+              <span class="tally__l">{medalLabel[t]}</span>
+            </li>
+          ))
+        }
+      </ul>
+
+      <ol class="meets">
+        {
+          meets.map((m) => (
+            <li class="meet">
+              <div class="meet__head">
+                <h2>
+                  <a href={`/achievements/${m.data.edition}/`}>
+                    Inter-IIT Tech Meet {m.data.edition}.0
+                  </a>
+                </h2>
+                <p class="meta">{m.data.year} &middot; {m.data.host}</p>
+              </div>
+
+              <dl class="meet__people">
+                <div><dt>Technical Secretary</dt><dd>{m.data.technicalSecretary}</dd></div>
+                <div><dt>Contingent Leader</dt><dd>{m.data.contingentLeader}</dd></div>
+                {m.data.overallRank && (
+                  <div><dt>Overall rank</dt><dd>{m.data.overallRank}</dd></div>
+                )}
+              </dl>
+
+              {m.data.medals.length > 0 && (
+                <ul class="meet__medals">
+                  {m.data.medals.map((medal) => (
+                    <li>
+                      <span class={`chip chip--${medal.type}`}>{medalLabel[medal.type]}</span>
+                      <span class="meet__event">
+                        {medal.sponsor && <span class="meet__sponsor">{medal.sponsor}: </span>}
+                        {medal.event}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+
+              <p><a class="link-more" href={`/achievements/${m.data.edition}/`}>Full roster</a></p>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .tally {
+    list-style: none;
+    margin: 0 0 2.5rem;
+    padding: 0;
+    display: grid;
+    gap: 1px;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 9rem), 1fr));
+    background: var(--line);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+
+  .tally__item {
+    background: var(--paper);
+    padding: 1.1rem 1.25rem;
+    display: flex;
+    flex-direction: column;
+    border-top: 3px solid transparent;
+  }
+
+  .tally__item--gold {
+    border-top-color: var(--gold);
+  }
+  .tally__item--silver {
+    border-top-color: var(--silver);
+  }
+  .tally__item--bronze {
+    border-top-color: var(--bronze);
+  }
+
+  .tally__n {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 2.1rem;
+    line-height: 1.1;
+    color: var(--navy);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .tally__l {
+    font-size: var(--t-label);
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+
+  .meets {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .meet {
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 1.4rem;
+    background: var(--paper);
+  }
+
+  .meet__head h2 {
+    font-size: var(--t-h3);
+    margin: 0 0 0.2rem;
+  }
+
+  .meet__head h2 a {
+    text-decoration: none;
+  }
+
+  .meet__people {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 2rem;
+    margin: 1rem 0;
+    padding: 0.9rem 0;
+    border-block: 1px solid var(--line-soft);
+  }
+
+  .meet__people dt {
+    font-size: var(--t-label);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+
+  .meet__people dd {
+    margin: 0;
+    font-weight: 600;
+    font-size: var(--t-small);
+  }
+
+  .meet__medals {
+    list-style: none;
+    margin: 0 0 1rem;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .meet__medals li {
+    display: flex;
+    gap: 0.7rem;
+    align-items: baseline;
+    font-size: var(--t-small);
+  }
+
+  .chip {
+    flex: none;
+    min-width: 4.2rem;
+    text-align: center;
+    padding: 0.15rem 0.5rem;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #fff;
+  }
+
+  .chip--gold {
+    background: var(--gold);
+  }
+  .chip--silver {
+    background: var(--silver);
+  }
+  .chip--bronze {
+    background: var(--bronze);
+  }
+
+  .meet__sponsor {
+    color: var(--ink-3);
+  }
+
+  .meet p:last-child {
+    margin: 0;
+  }
+</style>

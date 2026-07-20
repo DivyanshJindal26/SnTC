@@ -1,0 +1,449 @@
+---
+import { getCollection } from 'astro:content';
+import { Image } from 'astro:assets';
+
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Hero from '../components/home/Hero.astro';
+import GroupCard from '../components/cards/GroupCard.astro';
+import { site } from '../data/site';
+import { topLevelEvents, partitionByDate, formatDateRange } from '../lib/events';
+
+import heroImage from '../assets/projects/mars-rover-deimos.jpg';
+
+const groups = (await getCollection('groups'))
+  .filter((g) => g.data.active)
+  .sort((a, b) => a.data.order - b.data.order || a.data.name.localeCompare(b.data.name));
+
+const clubs = groups.filter((g) => g.data.kind === 'club');
+const cells = groups.filter((g) => g.data.kind === 'cell');
+
+const projects = (await getCollection('projects')).filter((p) => !p.data.draft);
+const meets = (await getCollection('interiit')).sort((a, b) => b.data.edition - a.data.edition);
+const medalCount = meets.reduce((n, m) => n + m.data.medals.length, 0);
+
+const { upcoming, past } = partitionByDate(await topLevelEvents());
+const eventList = [...upcoming, ...past].slice(0, 3);
+
+const showcase = projects.slice(0, 3);
+const latestMeet = meets[0];
+
+const stats = [
+  { value: clubs.length, label: 'Technical clubs' },
+  { value: cells.length, label: 'Cells' },
+  { value: projects.length, label: 'Active projects' },
+  { value: medalCount, label: 'Inter-IIT medals' },
+];
+
+const inr = new Intl.NumberFormat('en-IN', {
+  style: 'currency',
+  currency: 'INR',
+  maximumFractionDigits: 0,
+});
+---
+
+<BaseLayout title={`${site.name}, ${site.institute}`} bare description={site.description}>
+  <Hero
+    image={heroImage}
+    credit="Team Deimos' Mars rover, built for the University Rover Challenge"
+    stats={stats}
+  />
+
+  <!-- ----------------------------------------------------------- about -- -->
+  <section class="section" id="about">
+    <div class="page about">
+      <div>
+        <p class="label">About the council</p>
+        <h2>A body of students, advised by faculty</h2>
+      </div>
+      <div class="about__text">
+        <p class="lede">
+          The Science and Technology Council is the technical society of {site.institute}
+          — programming, bioengineering, automotive engineering, robotics,
+          astronomy, mechanics, civil engineering and entrepreneurship.
+        </p>
+        <p>
+          Every club supports open participation. You can join at any point in
+          the year, you do not need prior experience, and members represent the
+          institute at national competitions.
+        </p>
+        <p><a class="link-more" href="/team/">Meet the team</a></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- --------------------------------------------------------- projects -- -->
+  <section class="section section--band" id="offerings">
+    <div class="page">
+      <div class="section-head head-row">
+        <div>
+          <p class="label">Projects</p>
+          <h2>What we are building</h2>
+        </div>
+        <a class="link-more" href="/projects/">All projects</a>
+      </div>
+
+      <ul class="pgrid">
+        {
+          showcase.map((p) => (
+            <li>
+              <article class="pcard">
+                <a class="pcard__media" href={`/projects/${p.id}/`}>
+                  {p.data.image && (
+                    <Image
+                      src={p.data.image}
+                      alt=""
+                      width={720}
+                      height={460}
+                      loading="lazy"
+                    />
+                  )}
+                </a>
+                <div class="pcard__body">
+                  <h3><a href={`/projects/${p.id}/`}>{p.data.title}</a></h3>
+                  <p class="pcard__sum">{p.data.summary}</p>
+                  <p class="meta">
+                    Lead: {p.data.lead.name}
+                    {p.data.budgetINR && <> &middot; {inr.format(p.data.budgetINR)}</>}
+                  </p>
+                </div>
+              </article>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+
+  <!-- ------------------------------------------------------------ clubs -- -->
+  <section class="section" id="clubs">
+    <div class="page">
+      <div class="section-head head-row">
+        <div>
+          <p class="label">Clubs</p>
+          <h2>Eight technical clubs</h2>
+        </div>
+        <a class="link-more" href="/clubs/">All clubs</a>
+      </div>
+
+      <ul class="ggrid">
+        {clubs.map((g) => <li><GroupCard group={g} /></li>)}
+      </ul>
+    </div>
+  </section>
+
+  <!-- ------------------------------------------------------------ cells -- -->
+  <section class="section section--band" id="cells">
+    <div class="page">
+      <div class="section-head head-row">
+        <div>
+          <p class="label">Cells</p>
+          <h2>Four specialist cells</h2>
+        </div>
+        <a class="link-more" href="/cells/">All cells</a>
+      </div>
+
+      <ul class="ggrid">
+        {cells.map((g) => <li><GroupCard group={g} /></li>)}
+      </ul>
+    </div>
+  </section>
+
+  <!-- ----------------------------------------------------------- events -- -->
+  <section class="section" id="events">
+    <div class="page">
+      <div class="section-head head-row">
+        <div>
+          <p class="label">Events</p>
+          <h2>{upcoming.length > 0 ? 'Coming up' : 'Recent events'}</h2>
+        </div>
+        <a class="link-more" href="/events/">All events</a>
+      </div>
+
+      <ul class="elist">
+        {
+          eventList.map((e) => (
+            <li class="erow">
+              <div class="erow__main">
+                <h3><a href={`/events/${e.id}/`}>{e.data.title}</a></h3>
+                <p class="erow__sum">{e.data.summary}</p>
+              </div>
+              <p class="meta erow__date">
+                {formatDateRange(e.data.startDate, e.data.endDate)}
+              </p>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+
+  <!-- --------------------------------------------------------- inter-iit -- -->
+  <section class="section section--navy" id="Inter-IIT">
+    <div class="page iit">
+      <div>
+        <p class="label label--light">Inter-IIT Tech Meet</p>
+        <h2>{medalCount} medals across {meets.length} meets</h2>
+        <p class="iit__text">
+          The {site.institute} contingent competes annually against every other
+          IIT. Results, rosters and rankings going back to the 8.0 meet in 2019.
+        </p>
+        <a class="btn btn--onphoto" href="/achievements/">See the record</a>
+      </div>
+
+      {
+        latestMeet && (
+          <dl class="iit__latest">
+            <div>
+              <dt>Most recent</dt>
+              <dd>{latestMeet.data.edition}.0 &middot; {latestMeet.data.year}</dd>
+            </div>
+            <div>
+              <dt>Host</dt>
+              <dd>{latestMeet.data.host}</dd>
+            </div>
+            {latestMeet.data.overallRank && (
+              <div>
+                <dt>Overall rank</dt>
+                <dd>{latestMeet.data.overallRank}</dd>
+              </div>
+            )}
+          </dl>
+        )
+      }
+    </div>
+  </section>
+
+  <!-- ---------------------------------------------------------- contact -- -->
+  <section class="section" id="contactUs">
+    <div class="page contact">
+      <div>
+        <p class="label">Contact</p>
+        <h2>Get in touch</h2>
+        <p>
+          For anything council-wide, write to the Technical Secretary.
+          Individual clubs are reachable from their own pages.
+        </p>
+      </div>
+      <p>
+        <a class="btn btn--primary" href={`mailto:${site.contact.email}`}>
+          Email the Technical Secretary
+        </a>
+      </p>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  /* --- about ----------------------------------------------------------- */
+  .about {
+    display: grid;
+    gap: 1.5rem 3rem;
+    align-items: start;
+  }
+
+  @media (min-width: 860px) {
+    .about {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
+    }
+  }
+
+  .about__text p:last-child {
+    margin-bottom: 0;
+  }
+
+  /* --- projects -------------------------------------------------------- */
+  .pgrid,
+  .ggrid,
+  .elist {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .pgrid {
+    display: grid;
+    gap: 1.25rem;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr));
+  }
+
+  .pcard {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    overflow: hidden;
+    transition:
+      border-color var(--fast) var(--ease),
+      box-shadow var(--fast) var(--ease);
+  }
+
+  .pcard:hover {
+    border-color: color-mix(in oklab, var(--navy) 35%, var(--line));
+    box-shadow: var(--shadow);
+  }
+
+  .pcard__media {
+    display: block;
+    aspect-ratio: 16 / 10;
+    background: var(--paper-3);
+    overflow: hidden;
+  }
+
+  .pcard__media :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform var(--mid) var(--ease);
+  }
+
+  .pcard:hover .pcard__media :global(img) {
+    transform: scale(1.03);
+  }
+
+  .pcard__body {
+    padding: 1.1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    flex: 1;
+  }
+
+  .pcard__body h3 {
+    margin: 0;
+  }
+
+  .pcard__body h3 a {
+    text-decoration: none;
+  }
+
+  .pcard__sum {
+    color: var(--ink-2);
+    font-size: var(--t-small);
+    margin: 0;
+    flex: 1;
+  }
+
+  /* --- groups ---------------------------------------------------------- */
+  .ggrid {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 19rem), 1fr));
+  }
+
+  /* --- events ---------------------------------------------------------- */
+  .elist {
+    border-top: 1px solid var(--line);
+  }
+
+  .erow {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.25rem 2rem;
+    padding: 1.1rem 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .erow__main h3 {
+    margin: 0 0 0.2rem;
+  }
+
+  .erow__main h3 a {
+    text-decoration: none;
+  }
+
+  .erow__sum {
+    color: var(--ink-2);
+    font-size: var(--t-small);
+    margin: 0;
+    max-width: 60ch;
+  }
+
+  .erow__date {
+    margin: 0;
+    white-space: nowrap;
+  }
+
+  /* --- inter-iit ------------------------------------------------------- */
+  .section--navy {
+    background: var(--navy);
+    color: #fff;
+  }
+
+  .section--navy h2 {
+    color: #fff;
+  }
+
+  .label--light {
+    color: #ffb9a4;
+  }
+
+  .iit {
+    display: grid;
+    gap: 2rem 3rem;
+    align-items: center;
+  }
+
+  @media (min-width: 860px) {
+    .iit {
+      grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+    }
+  }
+
+  .iit__text {
+    color: rgba(255, 255, 255, 0.85);
+    max-width: 52ch;
+    margin: 0.75rem 0 1.5rem;
+  }
+
+  .iit__latest {
+    display: grid;
+    gap: 1px;
+    margin: 0;
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+
+  .iit__latest > div {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.85rem 1.1rem;
+    background: var(--navy);
+  }
+
+  .iit__latest dt {
+    font-size: 0.8rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.7);
+  }
+
+  .iit__latest dd {
+    margin: 0;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* --- contact --------------------------------------------------------- */
+  .contact {
+    display: grid;
+    gap: 1.5rem 3rem;
+    align-items: center;
+  }
+
+  @media (min-width: 860px) {
+    .contact {
+      grid-template-columns: minmax(0, 1.6fr) auto;
+    }
+  }
+
+  .contact p:last-child {
+    margin-bottom: 0;
+  }
+</style>

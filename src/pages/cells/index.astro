@@ -1,0 +1,40 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHeader from '../../components/layout/PageHeader.astro';
+import GroupCard from '../../components/cards/GroupCard.astro';
+
+const cells = (await getCollection('groups'))
+  .filter((g) => g.data.kind === 'cell' && g.data.active)
+  .sort((a, b) => a.data.order - b.data.order || a.data.name.localeCompare(b.data.name));
+---
+
+<BaseLayout
+  title="Cells"
+  description="The specialist cells of the Science and Technology Council, IIT Mandi."
+>
+  <PageHeader
+    label="Cells"
+    title="Four specialist cells"
+    lede="Focused groups working in data science, security, graphics and developer community — alongside the eight clubs."
+  />
+
+  <section class="section">
+    <div class="page">
+      <ul class="grid">
+        {cells.map((g) => <li><GroupCard group={g} /></li>)}
+      </ul>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .grid {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 19rem), 1fr));
+  }
+</style>

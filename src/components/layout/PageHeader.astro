@@ -1,0 +1,45 @@
+---
+/** Standard page masthead: label, title, optional lede, optional breadcrumb. */
+interface Props {
+  label?: string;
+  title: string;
+  lede?: string;
+  back?: { href: string; label: string };
+}
+
+const { label, title, lede, back } = Astro.props;
+---
+
+<header class="phead">
+  <div class="page">
+    {back && <a class="phead__back" href={back.href}>&larr; {back.label}</a>}
+    {label && <p class="label">{label}</p>}
+    <h1>{title}</h1>
+    {lede && <p class="lede phead__lede">{lede}</p>}
+    <slot />
+  </div>
+</header>
+
+<style>
+  .phead {
+    background: var(--paper-2);
+    border-bottom: 1px solid var(--line);
+    padding-block: clamp(2.25rem, 1.8rem + 2.5vw, 3.75rem);
+  }
+
+  .phead__back {
+    display: inline-block;
+    font-size: var(--t-small);
+    font-weight: 600;
+    text-decoration: none;
+    margin-bottom: 0.85rem;
+  }
+
+  .phead .label {
+    margin-bottom: 0.45rem;
+  }
+
+  .phead__lede {
+    margin: 0.85rem 0 0;
+  }
+</style>

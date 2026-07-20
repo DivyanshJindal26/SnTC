@@ -1,0 +1,221 @@
+---
+import { getCollection, type CollectionEntry } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHeader from '../../components/layout/PageHeader.astro';
+
+export async function getStaticPaths() {
+  const meets = await getCollection('interiit');
+  return meets.map((meet) => ({
+    params: { edition: String(meet.data.edition) },
+    props: { meet },
+  }));
+}
+
+interface Props {
+  meet: CollectionEntry<'interiit'>;
+}
+
+const { meet } = Astro.props;
+const d = meet.data;
+
+const medalLabel = { gold: 'Gold', silver: 'Silver', bronze: 'Bronze' } as const;
+const order = { gold: 0, silver: 1, bronze: 2 } as const;
+const medals = [...d.medals].sort((a, b) => order[a.type] - order[b.type]);
+
+const people = [
+  { label: 'Technical Secretary', value: d.technicalSecretary },
+  { label: 'Contingent Leader', value: d.contingentLeader },
+  d.deputyContingentLeader && {
+    label: 'Deputy Contingent Leader',
+    value: d.deputyContingentLeader,
+  },
+  d.overallRank && { label: 'Overall rank', value: String(d.overallRank) },
+].filter(Boolean) as { label: string; value: string }[];
+---
+
+<BaseLayout
+  title={`Inter-IIT Tech Meet ${d.edition}.0`}
+  description={`IIT Mandi at the ${d.edition}.0 Inter-IIT Tech Meet, ${d.year}, hosted by ${d.host}.`}
+>
+  <PageHeader
+    label={`${d.year} · ${d.host}`}
+    title={`Inter-IIT Tech Meet ${d.edition}.0`}
+    lede={`${d.medals.length} ${d.medals.length === 1 ? 'medal' : 'medals'} for IIT Mandi.`}
+    back={{ href: '/achievements/', label: 'All meets' }}
+  />
+
+  <section class="section">
+    <div class="page wrap">
+      <dl class="people">
+        {
+          people.map((p) => (
+            <div><dt>{p.label}</dt><dd>{p.value}</dd></div>
+          ))
+        }
+      </dl>
+
+      {
+        medals.length > 0 && (
+          <>
+            <h2>Medals</h2>
+            <ul class="medals">
+              {medals.map((m) => (
+                <li class="medal">
+                  <div class="medal__head">
+                    <span class={`chip chip--${m.type}`}>{medalLabel[m.type]}</span>
+                    <h3>
+                      {m.sponsor && <span class="medal__sponsor">{m.sponsor}: </span>}
+                      {m.event}
+                    </h3>
+                  </div>
+                  {m.category && <p class="meta">{m.category}</p>}
+                  {m.members.length > 0 && (
+                    <p class="medal__members">{m.members.join(' · ')}</p>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </>
+        )
+      }
+
+      {
+        d.highlights.length > 0 && (
+          <>
+            <h2>Also</h2>
+            <ul class="highlights">
+              {d.highlights.map((h) => (
+                <li>
+                  <h3>{h.title}</h3>
+                  <p>{h.description}</p>
+                </li>
+              ))}
+            </ul>
+          </>
+        )
+      }
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .wrap {
+    max-width: 58rem;
+  }
+
+  .wrap h2 {
+    font-size: var(--t-h3);
+    margin: 2.5rem 0 1.1rem;
+  }
+
+  .people {
+    display: grid;
+    gap: 1px;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
+    background: var(--line);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin: 0;
+  }
+
+  .people > div {
+    background: var(--paper);
+    padding: 0.9rem 1.1rem;
+  }
+
+  .people dt {
+    font-size: var(--t-label);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin-bottom: 0.2rem;
+  }
+
+  .people dd {
+    margin: 0;
+    font-weight: 600;
+    font-size: var(--t-small);
+  }
+
+  .medals,
+  .highlights {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+  }
+
+  .medal {
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 1.1rem 1.25rem;
+    background: var(--paper);
+  }
+
+  .medal__head {
+    display: flex;
+    gap: 0.75rem;
+    align-items: baseline;
+    flex-wrap: wrap;
+  }
+
+  .medal__head h3 {
+    margin: 0;
+    font-size: 1.02rem;
+  }
+
+  .medal__sponsor {
+    color: var(--ink-3);
+    font-weight: 500;
+  }
+
+  .medal .meta {
+    margin: 0.35rem 0 0;
+  }
+
+  .medal__members {
+    margin: 0.6rem 0 0;
+    font-size: var(--t-small);
+    color: var(--ink-2);
+  }
+
+  .chip {
+    flex: none;
+    padding: 0.15rem 0.6rem;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #fff;
+  }
+
+  .chip--gold {
+    background: var(--gold);
+  }
+  .chip--silver {
+    background: var(--silver);
+  }
+  .chip--bronze {
+    background: var(--bronze);
+  }
+
+  .highlights li {
+    border-left: 3px solid var(--navy-tint);
+    padding-left: 1rem;
+  }
+
+  .highlights h3 {
+    font-size: 1rem;
+    margin: 0 0 0.25rem;
+  }
+
+  .highlights p {
+    margin: 0;
+    color: var(--ink-2);
+    font-size: var(--t-small);
+  }
+</style>

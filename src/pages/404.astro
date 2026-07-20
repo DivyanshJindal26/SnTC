@@ -1,0 +1,57 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { site } from '../data/site';
+---
+
+<BaseLayout title="Page not found" description="That page does not exist.">
+  <section class="section">
+    <div class="page nf">
+      <p class="label">404</p>
+      <h1>We can't find that page</h1>
+      <p class="lede">
+        The SnTC site was rebuilt in 2026, so a few old addresses changed. Try
+        one of these instead.
+      </p>
+
+      <ul class="nf__links">
+        {site.nav.map((i) => <li><a href={i.href}>{i.label}</a></li>)}
+      </ul>
+
+      <p><a class="btn btn--primary" href="/">Back to the home page</a></p>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .nf {
+    max-width: 42rem;
+    padding-block: clamp(2rem, 1rem + 4vw, 4rem);
+  }
+
+  .nf h1 {
+    margin: 0.4rem 0 0.75rem;
+  }
+
+  .nf__links {
+    list-style: none;
+    margin: 1.75rem 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .nf__links a {
+    display: block;
+    padding: 0.5rem 0.9rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    text-decoration: none;
+    font-size: var(--t-small);
+    font-weight: 600;
+  }
+
+  .nf__links a:hover {
+    border-color: var(--navy);
+  }
+</style>

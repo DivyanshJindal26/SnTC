@@ -1,0 +1,132 @@
+---
+import { site } from '../../data/site';
+
+const year = new Date().getFullYear();
+---
+
+<footer class="ftr">
+  <div class="page ftr__inner">
+    <div class="ftr__brand">
+      <img src="/logo.png" alt="" width="40" height="40" loading="lazy" />
+      <p class="ftr__blurb">
+        The technical society of {site.institute}. Eight clubs and four cells,
+        open to every student at any point in the year.
+      </p>
+    </div>
+
+    <nav class="ftr__col" aria-label="Footer">
+      <p class="ftr__head">Pages</p>
+      <ul>
+        {site.nav.map((i) => <li><a href={i.href}>{i.label}</a></li>)}
+      </ul>
+    </nav>
+
+    <div class="ftr__col">
+      <p class="ftr__head">Contact</p>
+      <ul>
+        <li><a href={`mailto:${site.contact.email}`}>Technical Secretary</a></li>
+        <li><a href={`mailto:${site.contact.council}`}>Council office</a></li>
+      </ul>
+    </div>
+
+    <div class="ftr__col">
+      <p class="ftr__head">Institute</p>
+      <ul>
+        <li><a href="https://www.iitmandi.ac.in/">IIT Mandi</a></li>
+        <li><a href="https://github.com/sntc-tech/SnTC">Site source</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="ftr__base">
+    <div class="page ftr__base-inner">
+      <p>&copy; {year} {site.shortName}, {site.institute}</p>
+      <p>{site.location.campus}</p>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .ftr {
+    background: var(--navy-deep);
+    color: rgba(255, 255, 255, 0.82);
+    margin-top: auto;
+  }
+
+  .ftr__inner {
+    display: grid;
+    gap: 2rem;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
+    padding-block: clamp(2.5rem, 2rem + 2vw, 3.5rem);
+  }
+
+  .ftr__brand {
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+    align-items: start;
+  }
+
+  .ftr__brand img {
+    width: 2.5rem;
+    height: 2.5rem;
+    object-fit: contain;
+    background: #fff;
+    border-radius: var(--radius);
+    padding: 0.25rem;
+  }
+
+  .ftr__blurb {
+    font-size: var(--t-small);
+    max-width: 30ch;
+    margin: 0;
+    color: rgba(255, 255, 255, 0.72);
+  }
+
+  .ftr__head {
+    font-size: var(--t-label);
+    font-weight: 600;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: #fff;
+    margin: 0 0 0.85rem;
+  }
+
+  .ftr__col ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+  }
+
+  .ftr__col a {
+    color: rgba(255, 255, 255, 0.8);
+    text-decoration: none;
+    font-size: var(--t-small);
+  }
+
+  .ftr__col a:hover {
+    color: #fff;
+    text-decoration: underline;
+  }
+
+  .ftr__base {
+    border-top: 1px solid rgba(255, 255, 255, 0.14);
+  }
+
+  .ftr__base-inner {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0.5rem 1.5rem;
+    padding-block: 1.1rem;
+  }
+
+  .ftr__base p {
+    margin: 0;
+    font-size: 0.82rem;
+    color: rgba(255, 255, 255, 0.6);
+  }
+</style>

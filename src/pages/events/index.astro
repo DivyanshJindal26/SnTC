@@ -1,0 +1,149 @@
+---
+import { Image } from 'astro:assets';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHeader from '../../components/layout/PageHeader.astro';
+import { topLevelEvents, partitionByDate, formatDateRange } from '../../lib/events';
+
+const { upcoming, past } = partitionByDate(await topLevelEvents());
+
+const sections = [
+  { title: 'Upcoming', items: upcoming, empty: 'Nothing scheduled right now. Check back at the start of the semester.' },
+  { title: 'Past', items: past, empty: null },
+];
+---
+
+<BaseLayout
+  title="Events"
+  description="Fests, competitions, workshops and bootcamps run by the Science and Technology Council, IIT Mandi."
+>
+  <PageHeader
+    label="Events"
+    title="Events and fests"
+    lede="Utkarsh, Xpecto and the Inter-IIT bootcamp, plus the competitions and workshops the clubs run through the year."
+  />
+
+  <section class="section">
+    <div class="page">
+      {
+        sections.map(
+          (s) =>
+            (s.items.length > 0 || s.empty) && (
+              <div class="block">
+                <h2 class="block__head">{s.title}</h2>
+
+                {s.items.length === 0 ? (
+                  <p class="empty">{s.empty}</p>
+                ) : (
+                  <ul class="egrid">
+                    {s.items.map((e) => (
+                      <li>
+                        <article class="ecard">
+                          <a class="ecard__media" href={`/events/${e.id}/`}>
+                            {e.data.poster && (
+                              <Image
+                                src={e.data.poster}
+                                alt=""
+                                width={560}
+                                height={380}
+                                loading="lazy"
+                              />
+                            )}
+                          </a>
+                          <div class="ecard__body">
+                            <p class="meta">
+                              {formatDateRange(e.data.startDate, e.data.endDate)}
+                            </p>
+                            <h3><a href={`/events/${e.id}/`}>{e.data.title}</a></h3>
+                            <p class="ecard__sum">{e.data.summary}</p>
+                          </div>
+                        </article>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            ),
+        )
+      }
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .block + .block {
+    margin-top: 3rem;
+  }
+
+  .block__head {
+    font-size: var(--t-h3);
+    padding-bottom: 0.6rem;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .empty {
+    color: var(--ink-2);
+  }
+
+  .egrid {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 1.25rem;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr));
+  }
+
+  .ecard {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    overflow: hidden;
+    background: var(--paper);
+    transition:
+      border-color var(--fast) var(--ease),
+      box-shadow var(--fast) var(--ease);
+  }
+
+  .ecard:hover {
+    border-color: color-mix(in oklab, var(--navy) 30%, var(--line));
+    box-shadow: var(--shadow);
+  }
+
+  .ecard__media {
+    display: block;
+    aspect-ratio: 3 / 2;
+    background: var(--paper-3);
+    overflow: hidden;
+  }
+
+  .ecard__media :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .ecard__body {
+    padding: 1rem 1.1rem 1.15rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+  }
+
+  .ecard__body h3 {
+    margin: 0;
+    font-size: 1.05rem;
+  }
+
+  .ecard__body h3 a {
+    text-decoration: none;
+  }
+
+  .ecard__sum {
+    color: var(--ink-2);
+    font-size: var(--t-small);
+    margin: 0;
+  }
+</style>
