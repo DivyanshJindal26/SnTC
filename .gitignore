@@ -15,6 +15,13 @@ pnpm-debug.log*
 .env
 .env.production
 
+# server
+server/data/
+server/node_modules/
+server/.env
+# Firebase Admin service-account keys — never commit, any filename variant
+server/*service-account*.json
+
 # macOS / Windows cruft
 .DS_Store
 Thumbs.db

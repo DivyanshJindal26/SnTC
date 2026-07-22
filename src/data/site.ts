@@ -28,6 +28,7 @@ export const site = {
     { label: 'Cells', href: '/cells/' },
     { label: 'Projects', href: '/projects/' },
     { label: 'Events', href: '/events/' },
+    { label: 'Register', href: '/register/' },
     { label: 'Achievements', href: '/achievements/' },
     { label: 'Team', href: '/team/' },
   ],

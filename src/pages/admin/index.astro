@@ -1,0 +1,549 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHeader from '../../components/layout/PageHeader.astro';
+import { FIREBASE_CONFIG, GOOGLE_CLIENT_ID, API_BASE } from '../../lib/auth-config';
+---
+
+<BaseLayout title="Admin" description="SnTC session management admin panel.">
+  <PageHeader label="Admin" title="Session management" />
+
+  <section class="section">
+    <div class="page">
+      <!-- Auth -->
+      <div id="admin-auth" class="auth-card">
+        <p>Sign in with your admin Google account.</p>
+        <button id="admin-sign-in" class="btn btn--primary">Sign in with Google</button>
+      </div>
+
+      <div id="admin-panel" hidden>
+        <div class="admin-bar">
+          <strong id="admin-name"></strong>
+          <button id="admin-sign-out" class="btn btn--small">Sign out</button>
+        </div>
+
+        <!-- Create session -->
+        <details class="create-section" id="create-section">
+          <summary class="btn">+ New session</summary>
+          <form id="create-form" class="sform">
+            <div class="sform__row">
+              <label>Title *<input type="text" name="title" required /></label>
+              <label>Venue *<input type="text" name="venue" required /></label>
+            </div>
+            <div class="sform__row">
+              <label>Date &amp; time *<input type="datetime-local" name="starts_at" required /></label>
+              <label>Capacity<input type="number" name="capacity" value="300" min="1" /></label>
+            </div>
+            <label>Description<textarea name="description" rows="2"></textarea></label>
+            <button type="submit" class="btn btn--primary">Create session</button>
+          </form>
+        </details>
+
+        <div id="admin-sessions"></div>
+
+        <!-- Registrations modal -->
+        <div id="reg-modal" class="modal" hidden>
+          <div class="modal__box">
+            <div class="modal__header">
+              <h3 id="modal-title"></h3>
+              <button class="modal__close" id="modal-close">&times;</button>
+            </div>
+            <div class="modal__meta">
+              <span id="modal-info" class="meta"></span>
+              <div class="modal__actions">
+                <button id="modal-scan" class="btn btn--primary btn--small">Scan QR</button>
+                <button id="modal-export" class="btn btn--small">Export CSV</button>
+                <button id="modal-toggle" class="btn btn--small"></button>
+              </div>
+            </div>
+            <div id="priority-banner" class="priority-banner" hidden>
+              <strong>Priority entry window active.</strong> Registered students enter now. Walk-ins after window closes.
+            </div>
+
+            <!-- QR scanner area -->
+            <div id="scanner-area" class="scanner-area" hidden>
+              <div id="scanner-viewfinder"></div>
+              <div id="scan-result" class="scan-result" hidden></div>
+              <button id="scanner-stop" class="btn btn--small">Stop scanner</button>
+            </div>
+
+            <div class="modal__body">
+              <table class="rtable">
+                <thead><tr><th>#</th><th>Name</th><th>Email</th><th>Roll</th><th>Registered</th><th>Check-in</th></tr></thead>
+                <tbody id="reg-tbody"></tbody>
+              </table>
+              <p id="reg-empty" class="meta" hidden>No registrations yet.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<script is:inline src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script is:inline src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script is:inline src="https://accounts.google.com/gsi/client"></script>
+<script is:inline src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+
+<script is:inline define:vars={{ FIREBASE_CONFIG, GOOGLE_CLIENT_ID, API: API_BASE }}>
+  firebase.initializeApp(FIREBASE_CONFIG);
+  const auth = firebase.auth();
+
+  let idToken = null;
+
+  const $auth   = document.getElementById('admin-auth');
+  const $panel  = document.getElementById('admin-panel');
+  const $name   = document.getElementById('admin-name');
+  const $sess   = document.getElementById('admin-sessions');
+  const $modal  = document.getElementById('reg-modal');
+  const $mTitle = document.getElementById('modal-title');
+  const $mInfo  = document.getElementById('modal-info');
+  const $mExport = document.getElementById('modal-export');
+  const $mToggle = document.getElementById('modal-toggle');
+  const $mScan  = document.getElementById('modal-scan');
+  const $pBanner = document.getElementById('priority-banner');
+  const $tbody  = document.getElementById('reg-tbody');
+  const $rEmpty = document.getElementById('reg-empty');
+  const $scanArea = document.getElementById('scanner-area');
+  const $scanResult = document.getElementById('scan-result');
+
+  let activeSession = null;
+  let scanner = null;
+
+  // --- Auth via Google Identity Services ---
+  const tokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: GOOGLE_CLIENT_ID,
+    scope: 'openid email profile',
+    callback: async (tokenResponse) => {
+      if (tokenResponse.error) {
+        console.error('Google sign-in error:', tokenResponse);
+        return;
+      }
+      try {
+        const credential = firebase.auth.GoogleAuthProvider.credential(null, tokenResponse.access_token);
+        await auth.signInWithCredential(credential);
+      } catch (err) {
+        console.error('Firebase sign-in error:', err);
+        alert('Sign-in failed. Please try again.');
+      }
+    },
+  });
+
+  document.getElementById('admin-sign-in').addEventListener('click', () => {
+    tokenClient.requestAccessToken();
+  });
+  document.getElementById('admin-sign-out').addEventListener('click', () => auth.signOut());
+
+  auth.onAuthStateChanged(async (user) => {
+    if (user) {
+      idToken = await user.getIdToken();
+
+      // Server-side admin check — the panel only opens for ADMIN_EMAILS accounts
+      try {
+        const res = await fetch(API + '/admin/me', {
+          headers: { Authorization: 'Bearer ' + idToken },
+        });
+        if (!res.ok) {
+          await auth.signOut();
+          alert('This account does not have admin access.');
+          return;
+        }
+      } catch {
+        await auth.signOut();
+        alert('Could not verify admin access. Try again.');
+        return;
+      }
+
+      $auth.hidden = true; $panel.hidden = false;
+      $name.textContent = user.displayName || user.email;
+      loadSessions();
+    } else {
+      idToken = null; $auth.hidden = false; $panel.hidden = true;
+    }
+  });
+
+  // --- Create ---
+  document.getElementById('create-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    idToken = await auth.currentUser.getIdToken(true);
+    const res = await fetch(API + '/admin/sessions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + idToken },
+      body: JSON.stringify({
+        title: fd.get('title'), venue: fd.get('venue'),
+        starts_at: new Date(fd.get('starts_at')).toISOString(),
+        capacity: parseInt(fd.get('capacity')) || 300,
+        description: fd.get('description') || null,
+      }),
+    });
+    if (!res.ok) { alert((await res.json()).error || 'Failed'); return; }
+    e.target.reset();
+    document.getElementById('create-section').open = false;
+    loadSessions();
+  });
+
+  // --- Sessions list ---
+  async function loadSessions() {
+    idToken = await auth.currentUser.getIdToken(true);
+    const res = await fetch(API + '/sessions');
+    const sessions = await res.json();
+    $sess.innerHTML = '';
+
+    if (!sessions.length) { $sess.innerHTML = '<p class="meta">No sessions yet.</p>'; return; }
+    sessions.sort((a, b) => new Date(b.starts_at) - new Date(a.starts_at));
+
+    for (const s of sessions) {
+      const card = document.createElement('div');
+      card.className = 'acard' + (new Date(s.starts_at) < new Date() ? ' acard--past' : '');
+      const d = new Date(s.starts_at);
+      const cnt = s.registration_count || 0;
+
+      card.innerHTML = `
+        <div class="acard__main">
+          <div>
+            <h3>${esc(s.title)}</h3>
+            <span class="meta">${d.toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})} at ${d.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})} · ${esc(s.venue)}</span>
+          </div>
+          <div class="acard__stats">
+            <span class="stat">${cnt} / ${s.capacity}</span>
+            <span class="meta">registered</span>
+          </div>
+        </div>
+        <div class="acard__actions"></div>
+      `;
+
+      const acts = card.querySelector('.acard__actions');
+
+      const vb = document.createElement('button');
+      vb.className = 'btn btn--small'; vb.textContent = 'View registrations';
+      vb.addEventListener('click', () => openModal(s));
+      acts.appendChild(vb);
+
+      const db = document.createElement('button');
+      db.className = 'btn btn--small btn--danger'; db.textContent = 'Delete';
+      db.addEventListener('click', async () => {
+        if (!confirm('Delete session and all registrations?')) return;
+        idToken = await auth.currentUser.getIdToken(true);
+        await fetch(`${API}/admin/sessions/${s.id}`, { method: 'DELETE', headers: { Authorization: 'Bearer ' + idToken } });
+        loadSessions();
+      });
+      acts.appendChild(db);
+
+      $sess.appendChild(card);
+    }
+  }
+
+  // --- Modal ---
+  document.getElementById('modal-close').addEventListener('click', closeModal);
+  $modal.addEventListener('click', (e) => { if (e.target === $modal) closeModal(); });
+
+  function closeModal() {
+    $modal.hidden = true;
+    stopScanner();
+  }
+
+  async function openModal(session) {
+    activeSession = session;
+    $modal.hidden = false;
+    $mTitle.textContent = session.title;
+    $tbody.innerHTML = ''; $rEmpty.hidden = true;
+    $scanArea.hidden = true; $scanResult.hidden = true;
+
+    const start = new Date(session.starts_at);
+    const prioStart = new Date(start.getTime() - 15 * 60000);
+    const now = new Date();
+    $pBanner.hidden = !(now >= prioStart && now < start);
+
+    $mToggle.textContent = session.registration_open ? 'Close registration' : 'Open registration';
+    $mToggle.onclick = () => toggleReg(session);
+
+    $mExport.onclick = () => window.open(`${API}/admin/sessions/${session.id}/export?token=${idToken}`, '_blank');
+
+    idToken = await auth.currentUser.getIdToken(true);
+    const res = await fetch(`${API}/admin/sessions/${session.id}/registrations`, {
+      headers: { Authorization: 'Bearer ' + idToken },
+    });
+    const data = await res.json();
+
+    const checkedIn = data.registrations.filter(r => r.checked_in).length;
+    $mInfo.textContent = `${data.count} registered · ${session.capacity - data.count} spots left · ${checkedIn} checked in`;
+
+    if (!data.registrations.length) { $rEmpty.hidden = false; return; }
+
+    data.registrations.forEach((r, i) => {
+      const tr = document.createElement('tr');
+      if (r.checked_in) tr.classList.add('row--in');
+      tr.innerHTML = `
+        <td>${i+1}</td><td>${esc(r.name)}</td><td>${esc(r.email)}</td>
+        <td>${esc(r.roll_number||'—')}</td>
+        <td class="meta">${new Date(r.registered_at).toLocaleDateString('en-IN',{day:'numeric',month:'short'})}</td><td></td>
+      `;
+      const td = tr.lastElementChild;
+      const btn = document.createElement('button');
+      btn.className = r.checked_in ? 'ck checked' : 'ck';
+      btn.textContent = r.checked_in ? '✓ In' : 'Check in';
+      btn.addEventListener('click', async () => {
+        idToken = await auth.currentUser.getIdToken(true);
+        await fetch(`${API}/admin/registrations/${r.id}/checkin`, { method: 'PUT', headers: { Authorization: 'Bearer ' + idToken } });
+        openModal(activeSession);
+      });
+      td.appendChild(btn);
+      $tbody.appendChild(tr);
+    });
+  }
+
+  async function toggleReg(session) {
+    idToken = await auth.currentUser.getIdToken(true);
+    await fetch(`${API}/admin/sessions/${session.id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + idToken },
+      body: JSON.stringify({ registration_open: !session.registration_open }),
+    });
+    const updated = await (await fetch(`${API}/sessions/${session.id}`)).json();
+    activeSession = updated;
+    openModal(updated);
+    loadSessions();
+  }
+
+  // --- QR Scanner ---
+  $mScan.addEventListener('click', () => {
+    if ($scanArea.hidden) startScanner();
+    else stopScanner();
+  });
+  document.getElementById('scanner-stop').addEventListener('click', stopScanner);
+
+  async function startScanner() {
+    $scanArea.hidden = false;
+    $scanResult.hidden = true;
+    $mScan.textContent = 'Stop scanner';
+
+    scanner = new Html5Qrcode('scanner-viewfinder');
+    try {
+      await scanner.start(
+        { facingMode: 'environment' },
+        { fps: 10, qrbox: { width: 250, height: 250 } },
+        onScanSuccess,
+        () => {},
+      );
+    } catch (err) {
+      $scanResult.hidden = false;
+      $scanResult.className = 'scan-result scan-result--err';
+      $scanResult.textContent = 'Camera access denied. Check permissions.';
+      console.error(err);
+    }
+  }
+
+  function stopScanner() {
+    if (scanner) {
+      scanner.stop().catch(() => {});
+      scanner.clear();
+      scanner = null;
+    }
+    $scanArea.hidden = true;
+    $mScan.textContent = 'Scan QR';
+  }
+
+  let lastScanned = '';
+  async function onScanSuccess(decoded) {
+    if (decoded === lastScanned) return;
+    lastScanned = decoded;
+
+    // Pause scanner during verification
+    try { await scanner.pause(true); } catch {}
+
+    $scanResult.hidden = false;
+    $scanResult.className = 'scan-result';
+    $scanResult.textContent = 'Verifying…';
+
+    try {
+      idToken = await auth.currentUser.getIdToken(true);
+      const res = await fetch(API + '/checkin/scan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + idToken },
+        body: JSON.stringify({ token: decoded }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        $scanResult.className = 'scan-result scan-result--err';
+        $scanResult.textContent = data.error || 'Invalid QR';
+      } else if (data.already_checked_in) {
+        $scanResult.className = 'scan-result scan-result--warn';
+        $scanResult.innerHTML = `<strong>${esc(data.student.name)}</strong> already checked in.`;
+      } else {
+        $scanResult.className = 'scan-result scan-result--ok';
+        $scanResult.innerHTML = `<strong>✓ ${esc(data.student.name)}</strong> checked in!`;
+        openModal(activeSession);
+      }
+    } catch {
+      $scanResult.className = 'scan-result scan-result--err';
+      $scanResult.textContent = 'Network error';
+    }
+
+    // Resume after 2s for next scan
+    setTimeout(() => {
+      lastScanned = '';
+      try { scanner?.resume(); } catch {}
+    }, 2000);
+  }
+
+  function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+</script>
+
+<!-- Global (not Astro-scoped): session cards and table rows are injected
+     with JS, so scoped styles would never reach them. -->
+<style is:global>
+  .auth-card {
+    border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 1.25rem 1.5rem; background: var(--paper-2); margin-bottom: 2rem;
+  }
+  .auth-card p { margin: 0 0 1rem; color: var(--ink-2); }
+
+  .admin-bar {
+    display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem;
+  }
+  .admin-bar strong { color: var(--navy); }
+
+  .btn--small { padding: .4rem .8rem; font-size: var(--t-small); }
+  .btn--danger { border-color: var(--accent); color: var(--accent); }
+  .btn--danger:hover { background: var(--accent); color: var(--paper); }
+
+  /* --- create form --- */
+  .create-section {
+    border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 1rem 1.25rem; margin-bottom: 2rem;
+  }
+  .create-section[open] summary { margin-bottom: 1rem; }
+  .sform { display: flex; flex-direction: column; gap: .75rem; }
+  .sform__row { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; }
+  @media (max-width:600px) { .sform__row { grid-template-columns: 1fr; } }
+  .sform label {
+    display: flex; flex-direction: column; gap: .25rem;
+    font-size: var(--t-small); font-weight: 600; color: var(--ink-2);
+  }
+  .sform input, .sform textarea {
+    padding: .5rem .65rem; border: 1px solid var(--line); border-radius: var(--radius);
+    font-size: var(--t-body); background: var(--paper);
+  }
+  .sform input:focus, .sform textarea:focus {
+    outline: 2px solid var(--navy); outline-offset: 1px; border-color: var(--navy);
+  }
+
+  /* --- session cards --- */
+  .acard {
+    border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 1rem 1.25rem; margin-bottom: .75rem;
+    transition: border-color var(--fast) var(--ease);
+  }
+  .acard:hover { border-color: color-mix(in oklab, var(--navy) 30%, var(--line)); }
+  .acard--past { opacity: .6; }
+  .acard__main { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; flex-wrap: wrap; }
+  .acard__main h3 { margin: 0; font-size: 1.05rem; }
+  .acard__stats { text-align: right; }
+  .acard__stats .stat { font-family: var(--display); font-size: 1.3rem; font-weight: 700; color: var(--navy); }
+  .acard__actions { display: flex; gap: .5rem; margin-top: .75rem; flex-wrap: wrap; }
+
+  /* --- modal --- */
+  .modal[hidden] { display: none; }
+
+  .modal {
+    position: fixed; inset: 0; z-index: 50; background: rgba(18,24,33,.45);
+    display: flex; align-items: center; justify-content: center; padding: var(--gutter);
+  }
+  .modal__box {
+    background: var(--paper); border-radius: calc(var(--radius)*2);
+    box-shadow: var(--shadow-lg); width: 100%; max-width: 56rem;
+    max-height: 85vh; display: flex; flex-direction: column; overflow: hidden;
+  }
+  .modal__header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 1.25rem 1.5rem .5rem;
+  }
+  .modal__header h3 { margin: 0; }
+  .modal__close {
+    background: none; border: none; font-size: 1.5rem;
+    cursor: pointer; color: var(--ink-3); padding: .25rem; line-height: 1;
+  }
+  .modal__meta {
+    padding: 0 1.5rem 1rem; display: flex; justify-content: space-between;
+    align-items: center; flex-wrap: wrap; gap: .75rem;
+  }
+  .modal__actions { display: flex; gap: .5rem; }
+
+  .priority-banner {
+    background: #fdf6e3; border-top: 2px solid var(--gold);
+    padding: .75rem 1.5rem; font-size: var(--t-small); color: #5c4a00;
+  }
+
+  /* --- QR scanner --- */
+  .scanner-area[hidden] { display: none; }
+
+  .scanner-area {
+    padding: 1rem 1.5rem; border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line); background: var(--paper-2);
+    display: flex; flex-direction: column; align-items: center; gap: .75rem;
+  }
+
+  #scanner-viewfinder {
+    width: 100%; max-width: 400px; border-radius: var(--radius); overflow: hidden;
+  }
+
+  .scan-result {
+    padding: .75rem 1rem; border-radius: var(--radius);
+    font-weight: 600; text-align: center; width: 100%; max-width: 400px;
+  }
+  .scan-result--ok { background: #e8f5e9; color: #1a7d3a; }
+  .scan-result--warn { background: #fdf6e3; color: #5c4a00; }
+  .scan-result--err { background: #fde8e8; color: var(--accent); }
+
+  /* --- table --- */
+  .modal__body { overflow: auto; padding: 0 1.5rem 1.5rem; }
+  .rtable { width: 100%; border-collapse: collapse; font-size: var(--t-small); }
+  .rtable th {
+    text-align: left; padding: .5rem .6rem; border-bottom: 2px solid var(--line);
+    color: var(--ink-3); font-weight: 600; font-size: var(--t-label);
+    text-transform: uppercase; letter-spacing: .06em; white-space: nowrap;
+  }
+  .rtable td { padding: .55rem .6rem; border-bottom: 1px solid var(--line-soft); }
+  .row--in { background: #f0faf1; }
+
+  .ck {
+    padding: .3rem .6rem; border: 1px solid var(--line); border-radius: var(--radius);
+    background: var(--paper); cursor: pointer; font-size: var(--t-label); font-weight: 600;
+    transition: all var(--fast) var(--ease);
+  }
+  .ck:hover { border-color: var(--navy); color: var(--navy); }
+  .ck.checked { background: #e8f5e9; border-color: #1a7d3a; color: #1a7d3a; }
+
+  @media (max-width: 600px) {
+    .auth-card { padding: 1rem; }
+
+    .admin-bar { flex-wrap: wrap; }
+
+    .create-section { padding: .75rem 1rem; }
+
+    .acard { padding: .75rem 1rem; }
+    .acard__stats { text-align: left; }
+    .acard__actions .btn { flex: 1; text-align: center; }
+
+    .modal { padding: .5rem; }
+    .modal__box { max-height: 95vh; border-radius: var(--radius); }
+    .modal__header { padding: 1rem 1rem .4rem; }
+    .modal__meta {
+      padding: 0 1rem .75rem;
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    .modal__actions { width: 100%; flex-wrap: wrap; }
+    .modal__actions .btn { flex: 1; text-align: center; }
+    .modal__body { padding: 0 .75rem 1rem; overflow-x: auto; }
+
+    .priority-banner { padding: .6rem 1rem; }
+
+    .scanner-area { padding: .75rem 1rem; }
+
+    .rtable { font-size: var(--t-label); min-width: 500px; }
+    .rtable th:nth-child(4), .rtable td:nth-child(4) { display: none; }
+  }
+</style>
